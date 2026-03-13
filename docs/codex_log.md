@@ -6,16 +6,329 @@ The same granular prompting protocol was followed.
 ## Prompts
 
 ### Step 1: Create Repo Structure
-**Prompt Intent:** Initialize repository structure and required documentation files.
-**Context:** First step of the project setup.
-**Output Expectations:** Directory structure created, placeholder markdown logs (`codex_log.md`, `decision_log.md`, `break_fix_log.md`), `README.md`, and `up.sh` created.
+**Prompt:**
+```text
+You are acting as an engineering assistant helping me build an end-to-end Hybrid Search + KPI Dashboard system for a technical assessment.
+
+The system must follow strict engineering rules.
+
+Project Overview:
+We are building a CPU-only hybrid search system using:
+- Python 3.11
+- FastAPI backend
+- rank-bm25 for lexical search
+- sentence-transformers for embeddings
+- FAISS (CPU) or hnswlib for vector search
+- SQLite for logs and metrics
+- React + Vite or Streamlit for dashboard
+- pytest for testing
+
+The system must support:
+1. Data ingestion
+2. BM25 index
+3. Vector embedding index
+4. Hybrid search API
+5. Evaluation harness (nDCG, Recall, MRR)
+6. KPI dashboard
+7. Structured logging
+8. Metrics endpoint
+9. Unit tests
+10. Reproducible startup via ./up.sh
+
+CRITICAL RULES YOU MUST FOLLOW:
+
+1. Work in SMALL INCREMENTS
+Each response must implement only ONE small unit of work.
+
+Examples of acceptable units:
+- create one file
+- implement one class
+- implement one endpoint
+- write one test
+- modify one script
+
+Never generate large multi-module systems in one step.
+
+2. ALWAYS SPECIFY FILE PATHS
+Every code output must clearly state:
+- file path
+- new file vs modification
+
+Example format:
+File: backend/app/search/bm25.py
+
+3. AFTER EVERY STEP PROVIDE:
+- code
+- explanation of what changed
+- git commit message
+- entry for docs/codex_log.md
+
+4. ALWAYS INCLUDE TESTS
+If code logic is added, include pytest tests.
+
+5. ALWAYS MAINTAIN THESE DOCUMENTS
+Update when relevant:
+
+docs/codex_log.md
+docs/decision_log.md
+docs/break_fix_log.md
+
+6. EVERY STEP MUST BE COMMIT-READY
+
+After each task provide:
+
+Git command example:
+
+git add <files>
+git commit -m "implement BM25 index with rank-bm25"
+
+7. FOLLOW THIS REPO STRUCTURE
+
+repo-root/
+
+backend/
+    app/
+        api/
+        search/
+        ingestion/
+        evaluation/
+        logging/
+        db/
+    tests/
+
+frontend/
+
+data/
+    raw/
+    processed/
+    index/
+    eval/
+    metrics/
+
+docs/
+    architecture.md
+    codex_log.md
+    decision_log.md
+    break_fix_log.md
+
+up.sh
+requirements.txt
+README.md
+
+8. ALL CODE MUST RUN ON CPU
+Do not introduce GPU dependencies.
+
+9. NO HARD-CODED PATHS
+Everything must work from repo root.
+
+10. ASSUME REVIEWER WILL RUN:
+
+./up.sh
+
+on a clean machine.
+
+11. WHEN IMPLEMENTING FEATURES:
+Always include acceptance criteria and how it will be validated.
+
+12. WHEN GENERATING PROMPTS FOR CODEX:
+Use granular prompt style and include them in docs/codex_log.md.
+
+13. MAINTAIN CLEAN ENGINEERING PRACTICES
+- type hints
+- structured logging
+- clear modular design
+- defensive programming
+
+14. IF A STEP DEPENDS ON A PREVIOUS STEP:
+Explain the dependency.
+
+15. WHEN WRITING SCRIPTS:
+Ensure they are idempotent (safe to run multiple times).
+
+Workflow Rules:
+We will proceed step-by-step in this order:
+
+1. Create repo structure
+2. Setup Python environment
+3. Data ingestion pipeline
+4. BM25 index
+5. Embedding pipeline
+6. Vector index
+7. Hybrid scoring
+8. Search API
+9. Logging + SQLite
+10. Evaluation harness
+11. Dashboard
+12. Metrics endpoint
+13. up.sh automation
+14. Tests
+15. Failure scenarios
+
+For each step provide:
+- file changes
+- commit message
+- codex log entry
+- instructions to test
+
+When unsure, ask before implementing.
+```
+
+**Summary of response:**
+Created the basic directory structure and placeholder documentation files to organize the project according to requirements.
+
+**Files generated:**
+- `docs/architecture.md`
+- `docs/codex_log.md`
+- `docs/decision_log.md`
+- `README.md`
+- `up.sh`
 
 ### Step 2: Setup Python Environment
-**Prompt Intent:** Prepare Python package structure and define dependencies.
-**Context:** Second step to allow writing backend code in subsequent tasks.
-**Output Expectations:** `__init__.py` files created in backend modular directories, and `requirements.txt` populated with basic data science, search, and FastAPI dependencies.
+**Prompt:**
+```text
+We're starting the Hybrid Search + KPI Dashboard project and I want to first set up the basic repository structure before writing any logic.
+
+Create the following project layout:
+
+backend/
+app/
+api/
+search/
+ingestion/
+evaluation/
+logging/
+db/
+tests/
+
+frontend/
+
+data/
+raw/
+processed/
+index/
+eval/
+metrics/
+
+docs/
+
+Also create these files in the repo root:
+
+requirements.txt
+README.md
+up.sh
+
+Inside docs/, create:
+
+architecture.md
+codex_log.md
+decision_log.md
+break_fix_log.md
+
+Add `__init__.py` files so the backend folders work as Python packages:
+
+backend/app/**init**.py
+backend/app/api/**init**.py
+backend/app/search/**init**.py
+backend/app/ingestion/**init**.py
+backend/app/evaluation/**init**.py
+backend/app/logging/**init**.py
+backend/app/db/**init**.py
+
+For requirements.txt include:
+
+fastapi
+uvicorn
+rank-bm25
+sentence-transformers
+hnswlib
+numpy
+pandas
+pytest
+streamlit
+
+Show me:
+
+1. the final folder tree
+2. the contents of requirements.txt
+3. a minimal README placeholder
+4. the git commands I should run for the first commit
+```
+
+**Summary of response:**
+Created `__init__.py` files to initialize the backend modules and defined project dependencies in `requirements.txt`.
+
+**Files generated:**
+- `backend/app/__init__.py`
+- `backend/app/api/__init__.py`
+- `backend/app/search/__init__.py`
+- `backend/app/ingestion/__init__.py`
+- `backend/app/evaluation/__init__.py`
+- `backend/app/logging/__init__.py`
+- `backend/app/db/__init__.py`
+- `requirements.txt`
 
 ### Step 3: Data Ingestion Pipeline
-**Prompt Intent:** Implement the document ingestion pipeline.
-**Context:** Third step to process raw documents into a normalized JSONL dataset.
-**Output Expectations:** `backend/app/ingestion/ingest.py` handling file reading and JSONL creation. Small pytest test in `backend/tests/test_ingest.py` to verify functionality.
+**Prompt:**
+```text
+Next I want to implement the document ingestion pipeline.
+
+Create a module that loads documents from a folder and converts them into a normalized JSONL dataset.
+
+File to create:
+backend/app/ingestion/ingest.py
+
+Functionality:
+
+The script should read all `.txt` and `.md` files from an input directory and convert them into a JSONL file.
+
+Each document entry should contain:
+
+doc_id
+title
+text
+source
+created_at
+
+Requirements:
+
+* doc_id should be generated from the filename
+* title can be the first line of the document
+* text should contain the remaining content
+* source should store the original file path
+* created_at should store the current timestamp
+
+Add basic preprocessing:
+
+* strip extra whitespace
+* ignore empty files
+* handle very long files safely
+
+The script should support CLI usage like:
+
+python -m app.ingestion.ingest --input data/raw --out data/processed/docs.jsonl
+
+Also create a small pytest test:
+
+backend/tests/test_ingest.py
+
+The test should:
+
+* create a temporary folder
+* add a few sample `.txt` files
+* run the ingestion function
+* verify the JSONL output contains valid document entries
+
+Show:
+
+1. the full code for ingest.py
+2. the test file
+3. example command to run ingestion
+4. git commit message
+```
+
+**Summary of response:**
+Created a script to read `.txt` and `.md` files, extract data, and save it to a JSONL file. Added basic cleaning and testing.
+
+**Files generated:**
+- `backend/app/ingestion/ingest.py`
+- `backend/tests/test_ingest.py`
