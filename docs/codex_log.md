@@ -711,7 +711,7 @@ Updated `backend/app/api/main.py` so that `/health` resolves the live git commit
 - `backend/app/api/main.py` (Modified)
 - `backend/tests/test_api_search.py`
 
-### Step 10d: Query Logging & Persistence
+### Step 11: Query Logging and Persistence
 **Prompt:**
 ```text
 Now implement query logging and persistence.
@@ -750,10 +750,9 @@ Show:
 ```
 
 **Summary of response:**
-Created `backend/app/db/query_store.py` transitioning away from the generic `SQLiteLogger` implementation in `Step 9` to a dedicated `QueryStore` service. This module captures `request_id`, `timestamp`, `query`, `latency_ms`, `top_k`, `alpha`, and `result_count`. Hooked this into the FastAPI `main.py` lifecycle to write out API actions immediately. Verified functionality explicitly via a dedicated `test_query_store.py` that asserts SQLite writes occur correctly in parallel tests configurations without corrupting index metrics.
+Created `QueryStore` class in `backend/app/db/query_store.py` with a dedicated SQLite database (`data/metrics/query_store.db`). The table schema stores `request_id`, `query`, `latency_ms`, `top_k`, `alpha`, `result_count`, and `timestamp`. Integrated `QueryStore` into `main.py` so every `/search` request is automatically persisted. Created `test_query_store.py` validating insert/retrieval ordering and field integrity.
 
 **Files generated:**
 - `backend/app/db/query_store.py`
 - `backend/tests/test_query_store.py`
 - `backend/app/api/main.py` (Modified)
-- `backend/tests/test_main.py` (Modified)
