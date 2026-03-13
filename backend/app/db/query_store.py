@@ -12,16 +12,19 @@ DB_PATH = "data/metrics/query_store.db"
 class QueryStore:
     """
     SQLite-backed persistence for search request logs.
-    
-    Schema:
+
+    Schema v2:
         request_id  TEXT PRIMARY KEY
-        query       TEXT
+        query       TEXT NOT NULL
         latency_ms  REAL
         top_k       INTEGER
         alpha       REAL
         result_count INTEGER
-        timestamp   TEXT (ISO 8601 UTC)
+        timestamp   TEXT NOT NULL
+        user_agent  TEXT NOT NULL DEFAULT 'unknown'
     """
+
+    CURRENT_SCHEMA_VERSION = 2
 
     def __init__(self, db_path: str = DB_PATH):
         self.db_path = Path(db_path)
@@ -31,22 +34,78 @@ class QueryStore:
     def _conn(self):
         return sqlite3.connect(str(self.db_path), isolation_level=None)
 
+    # ── schema bootstrap & migration ──────────────────────────────────────
+
     def _init_db(self):
+        """Create tables if needed, then run any pending migrations."""
         try:
             with self._conn() as conn:
+                # Version tracking table
                 conn.execute("""
-                    CREATE TABLE IF NOT EXISTS queries (
-                        request_id   TEXT PRIMARY KEY,
-                        query        TEXT NOT NULL,
-                        latency_ms   REAL,
-                        top_k        INTEGER,
-                        alpha        REAL,
-                        result_count INTEGER,
-                        timestamp    TEXT NOT NULL
+                    CREATE TABLE IF NOT EXISTS schema_version (
+                        version INTEGER NOT NULL
                     )
                 """)
+
+                version = self._get_schema_version(conn)
+
+                if version == 0:
+                    # Fresh database → create schema at latest version
+                    self._create_v2_schema(conn)
+                    self._set_schema_version(conn, self.CURRENT_SCHEMA_VERSION)
+                    logger.info("Initialized QueryStore with schema v2.")
+                elif version < self.CURRENT_SCHEMA_VERSION:
+                    self._migrate(conn, version)
+                else:
+                    logger.info(f"QueryStore schema is up-to-date (v{version}).")
         except Exception as e:
             logger.error(f"Failed to initialize QueryStore database: {e}")
+
+    @staticmethod
+    def _get_schema_version(conn) -> int:
+        row = conn.execute("SELECT version FROM schema_version").fetchone()
+        return row[0] if row else 0
+
+    @staticmethod
+    def _set_schema_version(conn, version: int):
+        conn.execute("DELETE FROM schema_version")
+        conn.execute("INSERT INTO schema_version (version) VALUES (?)", (version,))
+
+    @staticmethod
+    def _create_v2_schema(conn):
+        """Create the queries table at the latest schema version."""
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS queries (
+                request_id   TEXT PRIMARY KEY,
+                query        TEXT NOT NULL,
+                latency_ms   REAL,
+                top_k        INTEGER,
+                alpha        REAL,
+                result_count INTEGER,
+                timestamp    TEXT NOT NULL,
+                user_agent   TEXT NOT NULL DEFAULT 'unknown'
+            )
+        """)
+
+    def _migrate(self, conn, from_version: int):
+        """Run incremental migrations from from_version to CURRENT."""
+        logger.info(f"Migrating QueryStore schema from v{from_version} to v{self.CURRENT_SCHEMA_VERSION}...")
+
+        if from_version < 2:
+            self._migrate_v1_to_v2(conn)
+
+        self._set_schema_version(conn, self.CURRENT_SCHEMA_VERSION)
+        logger.info("Migration complete.")
+
+    @staticmethod
+    def _migrate_v1_to_v2(conn):
+        """v1 → v2: add the user_agent column."""
+        logger.info("  v1 → v2: Adding 'user_agent' column...")
+        conn.execute(
+            "ALTER TABLE queries ADD COLUMN user_agent TEXT NOT NULL DEFAULT 'unknown'"
+        )
+
+    # ── public API ────────────────────────────────────────────────────────
 
     def log_query(
         self,
@@ -55,6 +114,7 @@ class QueryStore:
         top_k: int,
         alpha: float,
         result_count: int,
+        user_agent: str = "unknown",
     ) -> str:
         """Insert a search request record and return the generated request_id."""
         request_id = str(uuid.uuid4())
@@ -64,10 +124,10 @@ class QueryStore:
                 conn.execute(
                     """
                     INSERT INTO queries
-                        (request_id, query, latency_ms, top_k, alpha, result_count, timestamp)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                        (request_id, query, latency_ms, top_k, alpha, result_count, timestamp, user_agent)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     """,
-                    (request_id, query, latency_ms, top_k, alpha, result_count, ts),
+                    (request_id, query, latency_ms, top_k, alpha, result_count, ts, user_agent),
                 )
         except Exception as e:
             logger.error(f"Failed to log query {request_id}: {e}")

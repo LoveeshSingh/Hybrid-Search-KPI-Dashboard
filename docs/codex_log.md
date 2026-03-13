@@ -961,3 +961,34 @@ Added `_save_metadata()`, `load_metadata()`, and `validate_metadata()` to `Vecto
 - `backend/app/search/embeddings.py` (Modified)
 - `backend/app/search/hybrid_search.py` (Modified)
 - `backend/tests/test_index_metadata.py`
+
+### Step 17: Database Schema Migration
+**Prompt:**
+```text
+Simulate a database schema change in the SQLite query log.
+
+Modify the schema by adding a new column:
+
+user_agent TEXT NOT NULL
+
+Restart the system without migrating the database so the logging code fails.
+
+Then implement a simple migration mechanism that:
+
+* checks schema version
+* upgrades the database from version 1 to version 2 automatically
+
+Show:
+
+* migration logic
+* updated schema
+* example failure before migration
+* commit message
+```
+
+**Summary of response:**
+Rewrote `QueryStore` with a `schema_version` tracking table and automatic incremental migration. Fresh databases initialize at v2 directly. Existing v1 databases (no `user_agent` column) are auto-upgraded via `ALTER TABLE ADD COLUMN`. `log_query()` now accepts an optional `user_agent` parameter. Created `test_schema_migration.py` demonstrating the v1 failure scenario, automatic migration preserving legacy data, and fresh database behavior.
+
+**Files generated:**
+- `backend/app/db/query_store.py` (Modified)
+- `backend/tests/test_schema_migration.py`
