@@ -73,6 +73,50 @@ class QueryStore:
             logger.error(f"Failed to log query {request_id}: {e}")
         return request_id
 
+    def get_metrics(self) -> Dict[str, Any]:
+        """Compute system-wide search metrics from the query log."""
+        try:
+            with self._conn() as conn:
+                cursor = conn.cursor()
+
+                cursor.execute("SELECT COUNT(*) FROM queries")
+                total = cursor.fetchone()[0]
+
+                if total == 0:
+                    return {
+                        "total_search_requests": 0,
+                        "average_latency_ms": 0.0,
+                        "p50_latency": 0.0,
+                        "p95_latency": 0.0,
+                        "zero_result_queries": 0,
+                    }
+
+                cursor.execute("SELECT AVG(latency_ms) FROM queries")
+                avg_latency = cursor.fetchone()[0] or 0.0
+
+                # Percentiles via sorted latency values
+                cursor.execute("SELECT latency_ms FROM queries ORDER BY latency_ms ASC")
+                latencies = [row[0] for row in cursor.fetchall()]
+
+                p50_idx = int(len(latencies) * 0.50)
+                p95_idx = min(int(len(latencies) * 0.95), len(latencies) - 1)
+                p50 = latencies[p50_idx]
+                p95 = latencies[p95_idx]
+
+                cursor.execute("SELECT COUNT(*) FROM queries WHERE result_count = 0")
+                zero_results = cursor.fetchone()[0]
+
+                return {
+                    "total_search_requests": total,
+                    "average_latency_ms": round(avg_latency, 2),
+                    "p50_latency": round(p50, 2),
+                    "p95_latency": round(p95, 2),
+                    "zero_result_queries": zero_results,
+                }
+        except Exception as e:
+            logger.error(f"Failed to compute metrics: {e}")
+            return {"error": str(e)}
+
     def get_recent_queries(self, limit: int = 20) -> List[Dict[str, Any]]:
         """Return the most recent `limit` logged queries, newest first."""
         try:

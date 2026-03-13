@@ -65,10 +65,10 @@ def health_check():
 
 @app.get("/metrics")
 def get_metrics() -> Dict[str, Any]:
-    """Return basic request metrics."""
-    if search_logger is None:
-        raise HTTPException(status_code=503, detail="Logger not initialized")
-    return search_logger.get_metrics()
+    """Return search system metrics derived from the query log."""
+    if query_store is None:
+        raise HTTPException(status_code=503, detail="QueryStore not initialized")
+    return query_store.get_metrics()
 
 @app.post("/search", response_model=List[SearchResult])
 def search(request: SearchRequest):

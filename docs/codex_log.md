@@ -756,3 +756,40 @@ Created `QueryStore` class in `backend/app/db/query_store.py` with a dedicated S
 - `backend/app/db/query_store.py`
 - `backend/tests/test_query_store.py`
 - `backend/app/api/main.py` (Modified)
+
+### Step 12: Metrics Endpoint Enhancement
+**Prompt:**
+```text
+Add a metrics endpoint to the FastAPI backend so we can monitor basic search system statistics.
+
+Update the FastAPI application to include:
+
+GET /metrics
+
+The endpoint should return metrics derived from the SQLite query log such as:
+
+total_search_requests
+average_latency_ms
+p50_latency
+p95_latency
+zero_result_queries
+
+Metrics can be calculated from the stored query records.
+
+Add a small pytest test that sends requests to the endpoint and verifies the response structure.
+
+Show:
+
+* the updated API code
+* the test file
+* an example response
+* the commit message
+```
+
+**Summary of response:**
+Added a `get_metrics()` method to `QueryStore` that computes `total_search_requests`, `average_latency_ms`, `p50_latency`, `p95_latency`, and `zero_result_queries` from the SQLite log. Updated the `/metrics` endpoint in `main.py` to source data from `QueryStore` instead of the older `SQLiteLogger`. Created `test_metrics.py` to validate both the mocked endpoint response structure and standalone percentile computation.
+
+**Files generated:**
+- `backend/app/db/query_store.py` (Modified)
+- `backend/app/api/main.py` (Modified)
+- `backend/tests/test_metrics.py`
