@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+rank-bm25
+sentence-transformers
+hnswlib
+numpy
+pandas
+pytest
+streamlit
