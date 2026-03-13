@@ -402,3 +402,31 @@ Created the `EmbeddingPipeline` using `sentence-transformers` configured to run 
 **Files generated:**
 - `backend/app/search/embeddings.py`
 - `backend/tests/test_embeddings.py`
+
+### Step 6: Vector Index
+**Prompt:**
+```text
+Now implement the vector search index.
+
+Create backend/app/search/vector_index.py.
+
+Use hnswlib to build a vector similarity index.
+
+The class should support:
+
+build(embeddings)
+query(query_vector, top_k)
+
+Persist the vector index to:
+
+data/index/vector/
+
+Add a pytest test that builds a small index and verifies that similar vectors are retrieved correctly.
+```
+
+**Summary of response:**
+Implemented the `VectorIndex` class using `hnswlib` with `cosine` similarity space. Included `build()`, `query()`, `save()`, and `load()` methods to persist and retrieve the nearest neighbors graph and the identifier mappings. Wrote unit tests to confirm valid clustering of identical vectors and correct IO behavior.
+
+**Files generated:**
+- `backend/app/search/vector_index.py`
+- `backend/tests/test_vector_index.py`
