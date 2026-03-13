@@ -368,3 +368,37 @@ Implemented a `BM25Index` class that combines document titles and text to build 
 **Files generated:**
 - `backend/app/search/bm25.py`
 - `backend/tests/test_bm25.py`
+
+### Step 5: Embedding Pipeline
+**Prompt:**
+```text
+Next implement the semantic embedding pipeline.
+
+Create backend/app/search/embeddings.py.
+
+Use sentence-transformers with a lightweight CPU model.
+
+This module should load documents and generate embeddings for each document.
+
+The output should include:
+
+doc_id
+embedding vector
+
+Store embeddings as a numpy array file inside:
+
+data/index/vector/
+
+Add a small helper function to embed a query as well.
+
+Also create a pytest test that verifies embeddings are generated for a small set of sample documents.
+
+Show the implementation and test file.
+```
+
+**Summary of response:**
+Created the `EmbeddingPipeline` using `sentence-transformers` configured to run strictly on the CPU with the lightweight `all-MiniLM-L6-v2` model. Implemented embedding generation, saving, and loading functionality for documents as numpy arrays, as well as single-query scalar embedding generation. Verified matrix operations and file saving using Pytest.
+
+**Files generated:**
+- `backend/app/search/embeddings.py`
+- `backend/tests/test_embeddings.py`
