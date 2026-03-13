@@ -332,3 +332,39 @@ Created a script to read `.txt` and `.md` files, extract data, and save it to a 
 **Files generated:**
 - `backend/app/ingestion/ingest.py`
 - `backend/tests/test_ingest.py`
+
+### Step 4: BM25 Index
+**Prompt:**
+```text
+Now implement the lexical search index.
+
+Create backend/app/search/bm25.py.
+
+Implement a BM25Index class using the rank-bm25 library.
+
+The class should support:
+
+build(docs)
+query(query_text, top_k)
+
+The index should be built using title + text fields.
+
+Save the BM25 index artifacts to:
+
+data/index/bm25/
+
+Also create a pytest test:
+
+backend/tests/test_bm25.py
+
+Use a small 3-document corpus and verify that keyword queries return the correct ranking order.
+
+Show the class implementation, the test file, and a commit message.
+```
+
+**Summary of response:**
+Implemented a `BM25Index` class that combines document titles and text to build a searchable lexical index using `rank-bm25`. Added pytest coverage verifying index building, querying, saving, and loading.
+
+**Files generated:**
+- `backend/app/search/bm25.py`
+- `backend/tests/test_bm25.py`
