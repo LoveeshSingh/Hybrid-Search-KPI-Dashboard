@@ -885,3 +885,44 @@ Created `frontend/dashboard.py` using Streamlit with sidebar navigation across f
 **Files generated:**
 - `frontend/dashboard.py`
 - `backend/app/api/main.py` (Modified)
+
+### Step 15: Startup Script (up.sh)
+**Prompt:**
+```text
+Create the startup script that runs the entire system from a clean machine.
+
+Create:
+
+up.sh
+
+The script should:
+
+1. create a Python virtual environment (.venv) if it does not exist
+2. activate the environment
+3. install dependencies from requirements.txt
+4. run the ingestion pipeline if data/processed/docs.jsonl does not exist
+5. run the indexing pipeline if index artifacts are missing
+6. start the FastAPI backend
+7. start the Streamlit dashboard
+
+The script should print the URLs for:
+
+Search API
+Dashboard UI
+
+Ensure the script works when executed from the repository root using:
+
+./up.sh
+
+Show:
+
+* the full script
+* explanation of each step
+* commit message
+```
+
+**Summary of response:**
+Rewrote `up.sh` as a 7-step automated startup script. Creates `.venv` if missing, installs deps, conditionally runs ingestion and indexing pipelines, then launches FastAPI and Streamlit as background processes. Prints a summary box with URLs and supports Ctrl+C graceful shutdown via `trap`.
+
+**Files generated:**
+- `up.sh` (Overwritten)
