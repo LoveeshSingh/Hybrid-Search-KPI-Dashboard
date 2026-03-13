@@ -6,6 +6,7 @@ import time
 
 from backend.app.search.hybrid_search import HybridSearch
 from backend.app.logging.logger import SQLiteLogger
+import subprocess
 
 logger = logging.getLogger(__name__)
 
@@ -42,10 +43,22 @@ async def startup_event():
     except Exception as e:
         logger.error(f"Error loading indices: {e}")
 
+def get_git_commit():
+    """Retrieve the current git commit hash if available."""
+    try:
+        commit = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode("ascii").strip()
+        return commit
+    except Exception:
+        return "unknown"
+
 @app.get("/health")
 def health_check():
-    """Simple health check endpoint."""
-    return {"status": "ok"}
+    """Service health check endpoint."""
+    return {
+        "status": "ok",
+        "version": "1.0.0",
+        "commit": get_git_commit()
+    }
 
 @app.get("/metrics")
 def get_metrics() -> Dict[str, Any]:
