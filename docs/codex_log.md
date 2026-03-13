@@ -793,3 +793,51 @@ Added a `get_metrics()` method to `QueryStore` that computes `total_search_reque
 - `backend/app/db/query_store.py` (Modified)
 - `backend/app/api/main.py` (Modified)
 - `backend/tests/test_metrics.py`
+
+### Step 13: Evaluation Harness
+**Prompt:**
+```text
+Now implement the evaluation harness for measuring search quality.
+
+Create a module:
+
+backend/app/evaluation/evaluate.py
+
+This script should:
+
+* load evaluation queries from data/eval/queries.jsonl
+* load relevance judgments from data/eval/qrels.json
+* run the hybrid search system
+* compute the following metrics:
+
+nDCG@10
+Recall@10
+MRR@10
+
+Each run should append a row to:
+
+data/metrics/experiments.csv
+
+Include:
+
+timestamp
+alpha value
+embedding model name
+metric scores
+
+Also add a pytest test that runs the evaluation on a small toy dataset to verify the metrics are computed correctly.
+
+Show:
+
+* evaluate.py
+* the test file
+* example command to run evaluation
+* commit message
+```
+
+**Summary of response:**
+Created `backend/app/evaluation/evaluate.py` with helper functions for DCG, nDCG@k, Recall@k, and MRR@k. The `run_evaluation` driver accepts a pluggable search function, computes macro-averaged metrics across all queries, and appends results to `data/metrics/experiments.csv` with timestamp, alpha, and model name. CLI entry point loads queries from JSONL and qrels from JSON. Created `test_evaluate.py` verifying individual metric correctness and the end-to-end pipeline with a toy dataset.
+
+**Files generated:**
+- `backend/app/evaluation/evaluate.py`
+- `backend/tests/test_evaluate.py`
