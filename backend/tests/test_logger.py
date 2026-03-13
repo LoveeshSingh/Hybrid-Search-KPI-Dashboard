@@ -45,16 +45,13 @@ def test_metrics_endpoint(mock_logger):
     assert data["avg_latency_ms"] == 45.5
 
 @patch("backend.app.api.main.search_logger")
-@patch("backend.app.api.main.bm25_index")
-@patch("backend.app.api.main.vector_index")
-@patch("backend.app.api.main.embedding_pipeline")
-def test_search_endpoint_logging(mock_embedding, mock_vector, mock_bm25, mock_logger):
+@patch("backend.app.api.main.hybrid_search")
+def test_search_endpoint_logging(mock_hybrid, mock_logger):
     # Setup mocks
-    mock_bm25.bm25 = True
-    mock_bm25.query.return_value = [{"doc_id": "d1", "score": 10.0}]
+    mock_hybrid.bm25_index.bm25 = True
+    mock_hybrid.vector_index.index = True
     
-    mock_vector.index = True
-    mock_vector.query.return_value = [{"doc_id": "d1", "score": 0.9}]
+    mock_hybrid.search.return_value = [{"doc_id": "d1", "bm25_score": 1.0, "vector_score": 0.9, "hybrid_score": 0.95}]
     
     payload = {"query": "logging check", "top_k": 2, "alpha": 0.5}
 

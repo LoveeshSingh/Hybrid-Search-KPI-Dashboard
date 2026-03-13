@@ -12,24 +12,16 @@ def test_health_check():
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
 
-@patch("backend.app.api.main.bm25_index")
-@patch("backend.app.api.main.vector_index")
-@patch("backend.app.api.main.embedding_pipeline")
-def test_search_endpoint(mock_embedding, mock_vector, mock_bm25):
+@patch("backend.app.api.main.hybrid_search")
+def test_search_endpoint(mock_hybrid):
     # Setup mocks
-    mock_bm25.bm25 = True  # Just to pass the "is None" check
-    mock_bm25.query.return_value = [
-        {"doc_id": "d1", "score": 10.0},
-        {"doc_id": "d2", "score": 5.0}
-    ]
+    mock_hybrid.bm25_index.bm25 = True
+    mock_hybrid.vector_index.index = True
     
-    mock_vector.index = True
-    mock_vector.query.return_value = [
-        {"doc_id": "d2", "score": 0.9},
-        {"doc_id": "d3", "score": 0.8}
+    mock_hybrid.search.return_value = [
+        {"doc_id": "d2", "bm25_score": 0.5, "vector_score": 0.88, "hybrid_score": 0.69},
+        {"doc_id": "d1", "bm25_score": 1.0, "vector_score": 0.0, "hybrid_score": 0.5}
     ]
-    
-    mock_embedding.embed_query.return_value = np.array([0.1, 0.2])
 
     payload = {
         "query": "artificial intelligence",
@@ -53,8 +45,12 @@ def test_search_endpoint(mock_embedding, mock_vector, mock_bm25):
     # d2 should be top because it scores well on both
     assert results[0]["doc_id"] == "d2"
 
-def test_search_endpoint_uninitialized():
-    # If app hasn't loaded indices (like on a fresh start), it should return 503
+@patch("backend.app.api.main.hybrid_search")
+def test_search_endpoint_uninitialized(mock_hybrid):
+    # Setup uninitialized state
+    mock_hybrid.bm25_index.bm25 = None
+    mock_hybrid.vector_index.index = None
+    
     payload = {
         "query": "test",
         "top_k": 5,

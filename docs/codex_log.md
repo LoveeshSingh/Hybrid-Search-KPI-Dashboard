@@ -596,3 +596,64 @@ Created the unified indexing script `backend/app/index.py` that processes the pa
 **Files generated:**
 - `backend/app/index.py`
 - `backend/tests/test_index_pipeline.py`
+
+### Step 10: Hybrid Search Service
+**Prompt:**
+```text
+Now implement the hybrid search service that will be used by the API.
+
+Create a module:
+
+backend/app/search/hybrid_search.py
+
+This module should load the BM25 index and the vector index and expose a HybridSearch class.
+
+The class should:
+
+* load index artifacts from data/index/
+* accept a query string
+* run BM25 retrieval
+* generate a query embedding and run vector search
+* combine results using hybrid scoring
+
+Use the formula:
+
+hybrid_score = alpha * normalized_bm25 + (1 - alpha) * normalized_vector
+
+Support configurable alpha.
+
+Return results containing:
+
+doc_id
+bm25_score
+vector_score
+hybrid_score
+
+Include helper functions for:
+
+* min-max normalization
+* merging result sets
+
+Also add a pytest test:
+
+backend/tests/test_hybrid_search.py
+
+The test should create a small synthetic dataset and verify that hybrid scoring produces a ranked result list.
+
+Show:
+
+* hybrid_search.py
+* the test file
+* example usage
+* git commit message
+```
+
+**Summary of response:**
+Created `hybrid_search.py` containing the `HybridSearch` service class. This acts as a facade, abstracting the `BM25Index`, `EmbeddingPipeline`, and `VectorIndex` into a cohesive querying environment. Refactored `backend/app/api/main.py` and its tests (`test_main.py`, `test_logger.py`) to utilize this single interface. Implemented unit tests validating the integration points without real files using `unittest.mock`.
+
+**Files generated:**
+- `backend/app/search/hybrid_search.py`
+- `backend/tests/test_hybrid_search.py`
+- `backend/app/api/main.py` (Modified)
+- `backend/tests/test_main.py` (Modified)
+- `backend/tests/test_logger.py` (Modified)
