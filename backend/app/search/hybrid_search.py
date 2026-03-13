@@ -37,9 +37,17 @@ class HybridSearch:
             else:
                 logger.warning("Vector index path not found.")
                 return False
+
+            # Validate that the index was built with the same model
+            expected_model = self.embedding_pipeline.model_name
+            expected_dim = self.embedding_pipeline.get_dimension()
+            self.vector_index.validate_metadata(expected_model, expected_dim)
                 
-            logger.info("Hybrid Search indices loaded successfully.")
+            logger.info("Hybrid Search indices loaded and validated successfully.")
             return True
+        except ValueError as ve:
+            logger.error(f"Index validation failed: {ve}")
+            return False
         except Exception as e:
             logger.error(f"Failed to load Hybrid Search indices: {e}")
             return False

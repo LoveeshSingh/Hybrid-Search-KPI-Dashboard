@@ -1,7 +1,9 @@
 import hnswlib
 import numpy as np
+import json
 import logging
 from pathlib import Path
+from datetime import datetime, timezone
 from typing import List, Optional, Dict, Any
 
 logger = logging.getLogger(__name__)
@@ -16,12 +18,14 @@ class VectorIndex:
         self.index_dir.mkdir(parents=True, exist_ok=True)
         self.index_path = self.index_dir / "hnswlib.bin"
         self.doc_ids_path = self.index_dir / "index_doc_ids.npy"
+        self.metadata_path = self.index_dir / "index_metadata.json"
         
         self.space = space
         self.index = None
         self.doc_ids = None
 
-    def build(self, embeddings: np.ndarray, doc_ids: Optional[np.ndarray] = None) -> None:
+    def build(self, embeddings: np.ndarray, doc_ids: Optional[np.ndarray] = None,
+              embedding_model: str = "all-MiniLM-L6-v2", corpus_hash: str = "") -> None:
         """
         Build the hnswlib similarity index using given embeddings.
         Provide doc_ids to keep a mapping to the original document IDs.
@@ -49,6 +53,7 @@ class VectorIndex:
             self.doc_ids = integer_labels
             
         logger.info(f"Built vector index with {num_elements} elements.")
+        self._save_metadata(embedding_model, dim, num_elements, corpus_hash)
         self.save()
 
     def query(self, query_vector: np.ndarray, top_k: int = 5) -> List[Dict[str, Any]]:
@@ -98,6 +103,64 @@ class VectorIndex:
             np.save(self.doc_ids_path, self.doc_ids)
             
         logger.info(f"Saved vector index to {self.index_dir}")
+
+    def _save_metadata(self, embedding_model: str, dim: int, num_elements: int, corpus_hash: str) -> None:
+        """Persist index metadata as JSON."""
+        metadata = {
+            "embedding_model": embedding_model,
+            "embedding_dimension": dim,
+            "num_elements": num_elements,
+            "corpus_hash": corpus_hash,
+            "build_timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        with open(self.metadata_path, "w", encoding="utf-8") as f:
+            json.dump(metadata, f, indent=4)
+        logger.info(f"Saved index metadata to {self.metadata_path}")
+
+    def load_metadata(self) -> Dict[str, Any]:
+        """Load and return index metadata, or empty dict if missing."""
+        if not self.metadata_path.exists():
+            return {}
+        with open(self.metadata_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+
+    def validate_metadata(self, expected_model: str, expected_dim: int) -> None:
+        """
+        Validate that the stored index metadata matches the currently
+        configured embedding model and dimension.
+
+        Raises:
+            ValueError  if there is a mismatch.
+        """
+        meta = self.load_metadata()
+        if not meta:
+            logger.warning("No index metadata found — skipping validation.")
+            return
+
+        stored_model = meta.get("embedding_model", "unknown")
+        stored_dim = meta.get("embedding_dimension", -1)
+
+        errors = []
+        if stored_model != expected_model:
+            errors.append(
+                f"Embedding model mismatch: index was built with '{stored_model}' "
+                f"but the current model is '{expected_model}'."
+            )
+        if stored_dim != expected_dim:
+            errors.append(
+                f"Embedding dimension mismatch: index has dim={stored_dim} "
+                f"but the current model produces dim={expected_dim}."
+            )
+
+        if errors:
+            msg = (
+                "\n".join(errors)
+                + "\n\n⚠️  The vector index must be REBUILT with the current "
+                "embedding model.\n"
+                "   Run:  python -m backend.app.index --input data/processed/docs.jsonl"
+            )
+            logger.error(msg)
+            raise ValueError(msg)
 
     def load(self, dim: int, max_elements: int = 0) -> bool:
         """

@@ -17,9 +17,15 @@ class EmbeddingPipeline:
         self.embeddings_path = self.index_dir / "embeddings.npy"
         self.doc_ids_path = self.index_dir / "doc_ids.npy"
         
+        self.model_name = model_name
+        
         # device="cpu" enforces CPU-only processing per requirements
         logger.info(f"Loading sentence-transformer model: {model_name} on CPU")
         self.model = SentenceTransformer(model_name, device='cpu')
+
+    def get_dimension(self) -> int:
+        """Return the embedding vector dimension of the loaded model."""
+        return self.model.get_sentence_embedding_dimension()
 
     def embed_documents(self, docs: List[Dict[str, Any]], save: bool = True) -> Tuple[np.ndarray, np.ndarray]:
         """

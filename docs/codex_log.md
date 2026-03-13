@@ -926,3 +926,38 @@ Rewrote `up.sh` as a 7-step automated startup script. Creates `.venv` if missing
 
 **Files generated:**
 - `up.sh` (Overwritten)
+
+### Step 16: Vector Index Metadata Validation
+**Prompt:**
+```text
+Implement validation for the vector index metadata.
+
+Store metadata when the vector index is built, including:
+
+embedding_model
+embedding_dimension
+corpus_hash
+build_timestamp
+
+On service startup, validate that the current embedding model matches the stored metadata.
+
+Simulate a failure case by changing the embedding model used for query encoding so the dimensions do not match.
+
+The system should detect the mismatch and produce a clear error message explaining that the index must be rebuilt.
+
+Show:
+
+* metadata structure
+* validation logic
+* example failure output
+* commit message
+```
+
+**Summary of response:**
+Added `_save_metadata()`, `load_metadata()`, and `validate_metadata()` to `VectorIndex`. Index builds now persist `index_metadata.json` with model name, dimension, corpus hash, and timestamp. `HybridSearch.load()` runs validation after loading and returns `False` on mismatch with a clear error message. `EmbeddingPipeline` now exposes `model_name` and `get_dimension()`. Created `test_index_metadata.py` with tests for metadata persistence, matching validation, model mismatch, dimension mismatch, and an end-to-end failure simulation.
+
+**Files generated:**
+- `backend/app/search/vector_index.py` (Modified)
+- `backend/app/search/embeddings.py` (Modified)
+- `backend/app/search/hybrid_search.py` (Modified)
+- `backend/tests/test_index_metadata.py`
