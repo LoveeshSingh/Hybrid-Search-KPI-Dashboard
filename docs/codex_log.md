@@ -430,3 +430,38 @@ Implemented the `VectorIndex` class using `hnswlib` with `cosine` similarity spa
 **Files generated:**
 - `backend/app/search/vector_index.py`
 - `backend/tests/test_vector_index.py`
+
+### Step 7: Hybrid Scoring
+**Prompt:**
+```text
+Now implement hybrid ranking.
+
+Create backend/app/search/hybrid.py.
+
+Combine BM25 results and vector search results.
+
+Hybrid score formula:
+
+hybrid_score = alpha * normalized_bm25 + (1 - alpha) * normalized_vector
+
+Include two normalization strategies:
+
+* min-max
+* z-score
+
+Return results containing:
+
+doc_id
+bm25_score
+vector_score
+hybrid_score
+
+Add tests verifying that hybrid ranking combines scores correctly.
+```
+
+**Summary of response:**
+Created `hybrid_rank` function which mathematically merges results from the lexical component (BM25) and Semantic component (Vector Search) using an alpha weight to penalize and prioritize sources. Implemented and tested both min-max scaling and z-score (standardization) normalizations. Pytests verified proper ranking and arithmetic.
+
+**Files generated:**
+- `backend/app/search/hybrid.py`
+- `backend/tests/test_hybrid.py`
