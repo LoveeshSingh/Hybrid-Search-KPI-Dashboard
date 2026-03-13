@@ -465,3 +465,39 @@ Created `hybrid_rank` function which mathematically merges results from the lexi
 **Files generated:**
 - `backend/app/search/hybrid.py`
 - `backend/tests/test_hybrid.py`
+
+### Step 8: Search API
+**Prompt:**
+```text
+Now create the search API.
+
+Create backend/app/api/main.py.
+
+Implement a FastAPI application with endpoints:
+
+GET /health
+
+POST /search
+
+Search endpoint input:
+
+query
+top_k
+alpha
+
+Return ranked results including:
+
+doc_id
+bm25_score
+vector_score
+hybrid_score
+
+Add a FastAPI TestClient test to verify the search endpoint returns valid responses.
+```
+
+**Summary of response:**
+Created a FastAPI application in `backend/app/api/main.py` containing `/health` and `/search` endpoints. Used Pydantic strictly for typed payloads. The search endpoint dynamically connects the `BM25Index`, `EmbeddingPipeline`, `VectorIndex`, and `hybrid_rank` logic to form the complete end-to-end multi-index hybrid pipeline request. Tested endpoint handling using Starlette's `TestClient` and `unittest.mock`.
+
+**Files generated:**
+- `backend/app/api/main.py`
+- `backend/tests/test_main.py`
