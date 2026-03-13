@@ -14,3 +14,8 @@ The same granular prompting protocol was followed.
 **Prompt Intent:** Prepare Python package structure and define dependencies.
 **Context:** Second step to allow writing backend code in subsequent tasks.
 **Output Expectations:** `__init__.py` files created in backend modular directories, and `requirements.txt` populated with basic data science, search, and FastAPI dependencies.
+
+### Step 3: Data Ingestion Pipeline
+**Prompt Intent:** Implement the document ingestion pipeline.
+**Context:** Third step to process raw documents into a normalized JSONL dataset.
+**Output Expectations:** `backend/app/ingestion/ingest.py` handling file reading and JSONL creation. Small pytest test in `backend/tests/test_ingest.py` to verify functionality.
