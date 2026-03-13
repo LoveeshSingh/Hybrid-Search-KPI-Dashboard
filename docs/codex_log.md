@@ -657,3 +657,103 @@ Created `hybrid_search.py` containing the `HybridSearch` service class. This act
 - `backend/app/api/main.py` (Modified)
 - `backend/tests/test_main.py` (Modified)
 - `backend/tests/test_logger.py` (Modified)
+
+### Step 10c: FastAPI Backend Service Verification
+**Prompt:**
+```text
+Now create the FastAPI backend service.
+
+Create:
+
+backend/app/api/main.py
+
+This should initialize a FastAPI application and load the HybridSearch service.
+
+Add the following endpoints:
+
+GET /health
+
+Return service status, version, and commit hash.
+
+POST /search
+
+Input JSON:
+
+query
+top_k
+alpha
+
+The endpoint should call the HybridSearch class and return ranked results including:
+
+doc_id
+bm25_score
+vector_score
+hybrid_score
+
+Add a FastAPI TestClient test:
+
+backend/tests/test_api_search.py
+
+Verify that the /search endpoint returns valid JSON results.
+
+Show:
+
+* main.py
+* the test file
+* example request using curl
+* git commit message
+```
+
+**Summary of response:**
+Updated `backend/app/api/main.py` so that `/health` resolves the live git commit hash using `subprocess` and returns a `1.0.0` version signature. Implemented `backend/tests/test_api_search.py` leveraging FastAPI's `TestClient` and native `unittest.mock` components. The test thoroughly overrides `HybridSearch` class integration verifying API payloads safely map into endpoint response logic.
+
+**Files generated:**
+- `backend/app/api/main.py` (Modified)
+- `backend/tests/test_api_search.py`
+
+### Step 10d: Query Logging & Persistence
+**Prompt:**
+```text
+Now implement query logging and persistence.
+
+Create:
+
+backend/app/db/query_store.py
+
+Use SQLite to store search requests.
+
+Create a table that records:
+
+request_id
+query
+latency_ms
+top_k
+alpha
+result_count
+timestamp
+
+Add functions:
+
+log_query(...)
+get_recent_queries(...)
+
+Modify the /search endpoint so each request is logged.
+
+Add a pytest test verifying that queries are correctly stored in SQLite.
+
+Show:
+
+* query_store.py
+* schema
+* test file
+* commit message
+```
+
+**Summary of response:**
+Created `backend/app/db/query_store.py` transitioning away from the generic `SQLiteLogger` implementation in `Step 9` to a dedicated `QueryStore` service. This module captures `request_id`, `timestamp`, `query`, `latency_ms`, `top_k`, `alpha`, and `result_count`. Hooked this into the FastAPI `main.py` lifecycle to write out API actions immediately. Verified functionality explicitly via a dedicated `test_query_store.py` that asserts SQLite writes occur correctly in parallel tests configurations without corrupting index metrics.
+
+**Files generated:**
+- `backend/app/db/query_store.py`
+- `backend/tests/test_query_store.py`
+- `backend/app/api/main.py` (Modified)
+- `backend/tests/test_main.py` (Modified)

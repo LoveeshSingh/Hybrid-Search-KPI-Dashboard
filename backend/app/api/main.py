@@ -5,7 +5,7 @@ import logging
 import time
 
 from backend.app.search.hybrid_search import HybridSearch
-from backend.app.logging.logger import SQLiteLogger
+from backend.app.db.query_store import QueryStore
 import subprocess
 
 logger = logging.getLogger(__name__)
@@ -14,7 +14,7 @@ app = FastAPI(title="Hybrid Search API")
 
 # Initialize global search components (lazy loaded on startup)
 hybrid_search = None
-search_logger = None
+query_store = None
 
 class SearchRequest(BaseModel):
     query: str
@@ -30,11 +30,11 @@ class SearchResult(BaseModel):
 @app.on_event("startup")
 async def startup_event():
     """Load indices on startup."""
-    global hybrid_search, search_logger
+    global hybrid_search, query_store
     
     logger.info("Loading search indices and components...")
     try:
-        search_logger = SQLiteLogger()
+        query_store = QueryStore()
         
         hybrid_search = HybridSearch()
         hybrid_search.load()
@@ -63,9 +63,9 @@ def health_check():
 @app.get("/metrics")
 def get_metrics() -> Dict[str, Any]:
     """Return basic request metrics."""
-    if search_logger is None:
+    if query_store is None:
         raise HTTPException(status_code=503, detail="Logger not initialized")
-    return search_logger.get_metrics()
+    return query_store.get_metrics()
 
 @app.post("/search", response_model=List[SearchResult])
 def search(request: SearchRequest):
@@ -88,8 +88,8 @@ def search(request: SearchRequest):
         
         # Log request
         latency_ms = (time.time() - start_time) * 1000.0
-        if search_logger:
-            search_logger.log_search(
+        if query_store:
+            query_store.log_query(
                 query=query_text,
                 latency_ms=latency_ms,
                 top_k=request.top_k,
