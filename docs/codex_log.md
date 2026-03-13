@@ -534,3 +534,65 @@ Implemented `SQLiteLogger` to capture and record runtime metrics asynchronously 
 - `backend/app/logging/logger.py`
 - `backend/tests/test_logger.py`
 - `backend/app/api/main.py` (Modified)
+
+### Step 9b: Indexing Pipeline Entry Point
+**Prompt:**
+```text
+Now I want to implement the indexing pipeline entry point.
+
+Create a module that reads the processed JSONL dataset and builds the search indexes.
+
+File to create:
+
+backend/app/index.py
+
+This script should:
+
+1. Load documents from data/processed/docs.jsonl
+2. Extract title + text for indexing
+3. Build the BM25 index
+4. Generate embeddings and build the vector index
+5. Save index artifacts to:
+
+data/index/bm25/
+data/index/vector/
+
+The script should support CLI usage like:
+
+python -m app.index --input data/processed/docs.jsonl
+
+It should:
+
+* verify the input dataset exists
+* print basic progress logs
+* store metadata about the indexes such as:
+
+  * embedding model name
+  * vector dimension
+  * corpus hash
+  * build timestamp
+
+Also create a pytest test:
+
+backend/tests/test_index_pipeline.py
+
+The test should:
+
+* generate a small sample JSONL dataset
+* run the indexing function
+* verify that BM25 and vector index artifacts are created.
+
+Show:
+
+1. the full code for backend/app/index.py
+2. the test file
+3. example command to run indexing
+4. git commit message
+```
+
+**Summary of response:**
+Created the unified indexing script `backend/app/index.py` that processes the parsed JSONL documents into executable BM25 and Vector indices sequentially. Added extensive progress logging, parameter generation, and MD5 corpus hash tracking dumped to `data/index/metadata.json`. Implemented `backend/tests/test_index_pipeline.py` mocking file system actions to securely assert function tracking logic.
+
+**Files generated:**
+- `backend/app/index.py`
+- `backend/tests/test_index_pipeline.py`
