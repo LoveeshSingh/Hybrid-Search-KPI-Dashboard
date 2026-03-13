@@ -1,12 +1,14 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Dict, Any
 import logging
+import time
 
 from backend.app.search.bm25 import BM25Index
 from backend.app.search.embeddings import EmbeddingPipeline
 from backend.app.search.vector_index import VectorIndex
 from backend.app.search.hybrid import hybrid_rank
+from backend.app.logging.logger import SQLiteLogger
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +18,7 @@ app = FastAPI(title="Hybrid Search API")
 bm25_index = None
 embedding_pipeline = None
 vector_index = None
+search_logger = None
 
 class SearchRequest(BaseModel):
     query: str
@@ -31,10 +34,12 @@ class SearchResult(BaseModel):
 @app.on_event("startup")
 async def startup_event():
     """Load indices on startup."""
-    global bm25_index, embedding_pipeline, vector_index
+    global bm25_index, embedding_pipeline, vector_index, search_logger
     
-    logger.info("Loading search indices...")
+    logger.info("Loading search indices and components...")
     try:
+        search_logger = SQLiteLogger()
+        
         bm25_index = BM25Index()
         # Non-fatal if missing, allows tests to pass and API to start empty
         if bm25_index.model_path.exists():
@@ -56,11 +61,20 @@ def health_check():
     """Simple health check endpoint."""
     return {"status": "ok"}
 
+@app.get("/metrics")
+def get_metrics() -> Dict[str, Any]:
+    """Return basic request metrics."""
+    if search_logger is None:
+        raise HTTPException(status_code=503, detail="Logger not initialized")
+    return search_logger.get_metrics()
+
 @app.post("/search", response_model=List[SearchResult])
 def search(request: SearchRequest):
     """
     Perform a hybrid search combining BM25 and vector search.
     """
+    start_time = time.time()
+    
     if bm25_index is None or bm25_index.bm25 is None:
         raise HTTPException(status_code=503, detail="BM25 index not initialized or empty.")
         
@@ -87,6 +101,17 @@ def search(request: SearchRequest):
         
         # 4. Truncate to requested top_k
         top_results = hybrid_results[:request.top_k]
+        
+        # Log request
+        latency_ms = (time.time() - start_time) * 1000.0
+        if search_logger:
+            search_logger.log_search(
+                query=query_text,
+                latency_ms=latency_ms,
+                top_k=request.top_k,
+                alpha=request.alpha,
+                result_count=len(top_results)
+            )
         
         # Convert to Pydantic models
         return [SearchResult(**res) for res in top_results]

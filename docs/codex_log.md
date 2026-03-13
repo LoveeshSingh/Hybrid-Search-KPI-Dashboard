@@ -501,3 +501,36 @@ Created a FastAPI application in `backend/app/api/main.py` containing `/health` 
 **Files generated:**
 - `backend/app/api/main.py`
 - `backend/tests/test_main.py`
+
+### Step 9: Logging + SQLite
+**Prompt:**
+```text
+Implement structured request logging.
+
+Create backend/app/logging/logger.py.
+
+Every search request should log:
+
+request_id
+query
+latency_ms
+top_k
+alpha
+result_count
+
+Store logs in SQLite.
+
+Add a metrics endpoint:
+
+GET /metrics
+
+Return basic counters and latency statistics.
+```
+
+**Summary of response:**
+Implemented `SQLiteLogger` to capture and record runtime metrics asynchronously for every hybrid search query performed via the API. Modded `main.py` to transparently trace request latency, returning results and persisting the telemetry to an auto-created `data/metrics/search_logs.db`. Added a `/metrics` HTTP endpoint to compute and retrieve request volume, average speeds, and yield sizes. Added validation tests mocking API integrations.
+
+**Files generated:**
+- `backend/app/logging/logger.py`
+- `backend/tests/test_logger.py`
+- `backend/app/api/main.py` (Modified)
