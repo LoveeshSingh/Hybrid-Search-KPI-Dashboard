@@ -70,6 +70,13 @@ def get_metrics() -> Dict[str, Any]:
         raise HTTPException(status_code=503, detail="QueryStore not initialized")
     return query_store.get_metrics()
 
+@app.get("/recent_queries")
+def recent_queries(limit: int = 50) -> List[Dict[str, Any]]:
+    """Return recent search queries from the log."""
+    if query_store is None:
+        raise HTTPException(status_code=503, detail="QueryStore not initialized")
+    return query_store.get_recent_queries(limit=limit)
+
 @app.post("/search", response_model=List[SearchResult])
 def search(request: SearchRequest):
     """

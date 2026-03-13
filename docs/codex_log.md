@@ -841,3 +841,47 @@ Created `backend/app/evaluation/evaluate.py` with helper functions for DCG, nDCG
 **Files generated:**
 - `backend/app/evaluation/evaluate.py`
 - `backend/tests/test_evaluate.py`
+
+### Step 14: Dashboard UI
+**Prompt:**
+```text
+Create a simple dashboard UI using Streamlit to visualize search activity and evaluation results.
+
+Create:
+
+frontend/dashboard.py
+
+The dashboard should contain four sections:
+
+Search Page
+* text input for query
+* show search results with bm25_score, vector_score, hybrid_score
+
+KPI Page
+* number of search requests
+* average latency
+* p50 and p95 latency
+* most common queries
+* zero-result queries
+
+Evaluation Page
+* load data/metrics/experiments.csv
+* plot nDCG trends across experiments
+
+Debug Page
+* display recent query logs from SQLite
+
+The dashboard should communicate with the FastAPI backend.
+
+Show:
+* dashboard.py implementation
+* example screenshot description
+* commit message
+```
+
+**Summary of response:**
+Created `frontend/dashboard.py` using Streamlit with sidebar navigation across four pages. The Search page sends queries to POST /search and displays ranked results in a DataFrame. The KPI page fetches GET /metrics and renders metric cards (total requests, avg/p50/p95 latency, zero-result queries) plus a bar chart of common queries via GET /recent_queries. The Evaluation page loads experiments.csv and plots nDCG/Recall/MRR trends. The Debug page shows raw query logs and service health. Also added a GET /recent_queries endpoint to main.py.
+
+**Files generated:**
+- `frontend/dashboard.py`
+- `backend/app/api/main.py` (Modified)
