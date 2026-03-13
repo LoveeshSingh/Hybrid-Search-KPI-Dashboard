@@ -992,3 +992,28 @@ Rewrote `QueryStore` with a `schema_version` tracking table and automatic increm
 **Files generated:**
 - `backend/app/db/query_store.py` (Modified)
 - `backend/tests/test_schema_migration.py`
+
+### Step 18: Normalization Bug Fix
+**Prompt:**
+```text
+Simulate a bug in hybrid score normalization.
+
+Introduce a failure case where all BM25 scores are identical, causing min-max normalization to divide by zero.
+
+Create a pytest test that reproduces the bug and results in invalid scores (NaN).
+
+Then fix the normalization logic so the system safely handles equal score ranges.
+
+Show:
+
+* failing test
+* corrected normalization code
+* commit message
+```
+
+**Summary of response:**
+Created `test_normalization_bug.py` with 7 tests. Two tests reproduce the bug using a deliberately broken normalizer (`_broken_min_max_normalize`) showing `ZeroDivisionError` and numpy `NaN` results. The remaining tests verify the fixed `min_max_normalize` returns `0.0` (no signal) for identical scores and that `hybrid_rank` produces valid scores when one or both score lists are flat. The fix changed the equal-score fallback from `0.5` to `0.0`.
+
+**Files generated:**
+- `backend/app/search/hybrid.py` (Modified)
+- `backend/tests/test_normalization_bug.py`

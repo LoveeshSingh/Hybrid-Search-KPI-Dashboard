@@ -9,8 +9,8 @@ def min_max_normalize(scores: List[float]) -> List[float]:
     max_val = max(scores)
     
     if max_val == min_val:
-        # Avoid division by zero if all scores are identical
-        return [0.5 for _ in scores]
+        # All scores identical → no discriminating signal → return 0.0
+        return [0.0 for _ in scores]
         
     return [(s - min_val) / (max_val - min_val) for s in scores]
 
